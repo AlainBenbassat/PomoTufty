@@ -23,14 +23,12 @@ class PomoTuftyController:
         elif currentScreen == "pre-work":
             self._pomoModel.setCurrentScreen("work")
         elif currentScreen == "work":
-            # pause
             self._pomoModel.setCurrentScreen("work")
         elif currentScreen == "post-work":
             self._pomoModel.setCurrentScreen("pre-break")
         elif currentScreen == "pre-break":
             self._pomoModel.setCurrentScreen("break")
         elif currentScreen == "break":
-            # pause
             self._pomoModel.setCurrentScreen("break")
         elif currentScreen == "post-break":
             self._pomoModel.setCurrentScreen("pre-work")
