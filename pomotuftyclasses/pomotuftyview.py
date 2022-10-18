@@ -63,7 +63,7 @@ class PomoTuftyView:
         self.__clearScreen()
     
         self.writeTextTitle("Focus", 120)
-        self.writeTextTime(self._pomoModel.getRemainingTime(), self._WHITE)
+        self.writeTextTime(self._pomoModel.getRemainingTime())
         
         self._display.update()
         
@@ -73,8 +73,8 @@ class PomoTuftyView:
         title = "Focused for " + str(self._pomoModel.getWorkDurationGoal()) + " min."
         self.writeTextTitle(title, 0)
         self.writeTextSuccess("Good job!")
-        self.writeTextLine("Press button:", 3, 0)
-        self.writeTextLine("(A) to take a break", 4, 15)
+        self.writeTextOvertime("Overtime: +" + self._pomoModel.getOvertime())
+        self.writeTextLine("Press button:", 4, 0)
         self.writeTextLine("(B) for home screen", 5, 15)
         
         self._display.update()
@@ -98,7 +98,7 @@ class PomoTuftyView:
         self.__clearScreen()
     
         self.writeTextTitle("Enjoy your break!", 18)
-        self.writeTextTime(self._pomoModel.getRemainingTime(), self._WHITE)
+        self.writeTextTime(self._pomoModel.getRemainingTime())
         
         self._display.update()
         
@@ -108,8 +108,8 @@ class PomoTuftyView:
         title = "Paused for " + str(self._pomoModel.getBreakDurationGoal()) + " min."
         self.writeTextTitle(title, 0)
         self.writeTextSuccess("Feeling refreshed?")
-        self.writeTextLine("Press button:", 3, 0)
-        self.writeTextLine("(A) go back to work", 4, 15)
+        self.writeTextOvertime("Overtime: +" + self._pomoModel.getOvertime())
+        self.writeTextLine("Press button:", 4, 0)
         self.writeTextLine("(B) for home screen", 5, 15)
         
         self._display.update()
@@ -126,9 +126,16 @@ class PomoTuftyView:
         self._display.set_pen(self._WHITE)
         self._display.text(msg, indent, textY + (line - 1) * lineHeight, 320, self._FONT_SIZE_NORMAL, 0, 1)
 
-    def writeTextTime(self, msg, color):
-        self._display.set_pen(color)
+    def writeTextTime(self, msg):
+        self._display.set_pen(self._WHITE)
         self._display.text(msg, 30, 120, 320, self._FONT_SIZE_TIME, 0, 1)
+        
+    def writeTextOvertime(self, msg):
+        textY = 70
+        lineHeight = 30
+
+        self._display.set_pen(self._WHITE)
+        self._display.text(msg, 0, 120, 320, self._FONT_SIZE_NORMAL, 0, 1)    
         
     def writeTextSuccess(self, msg):
         self._display.set_pen(self._GREEN)

@@ -104,5 +104,9 @@ class PomoTuftyController:
                     refreshScreen = self._pomoModel.tick()
                     if refreshScreen == True:
                         self._pomoView.drawScreen()
+            elif self._pomoModel.getCurrentScreen() in ["post-work", "post-break"]:
+                    refreshScreen = self._pomoModel.overtimeTick()
+                    if refreshScreen == True:
+                        self._pomoView.drawScreen()
             
             time.sleep(0.1)

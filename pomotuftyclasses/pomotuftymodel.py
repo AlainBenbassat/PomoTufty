@@ -10,6 +10,9 @@ class PomoTuftyModel:
     _remainingMinutes = 0
     _remainingSeconds = 0
 
+    _overtimeMinutes = 0
+    _overtimeSeconds = 0
+    
     _currentScreen = "home"
     _tickCounter = 0
     
@@ -24,6 +27,17 @@ class PomoTuftyModel:
         
         return refreshScreen
     
+    def overtimeTick(self):
+        refreshScreen = False
+        
+        t = time.ticks_ms()
+        if time.ticks_diff(t, self._tickCounter) >= 1000:
+            self._tickCounter = t
+            self.updateOvertime()
+            refreshScreen = True
+        
+        return refreshScreen
+    
     def updateRemainingTime(self):
         self._remainingSeconds = self._remainingSeconds - 1
         if self._remainingSeconds < 0:
@@ -31,18 +45,30 @@ class PomoTuftyModel:
             self._remainingMinutes = self._remainingMinutes - 1
         if self._remainingMinutes == 0:
             self._remainingMinutes = 0
+    
+    def updateOvertime(self):
+        self._overtimeSeconds = self._overtimeSeconds + 1
+        if self._overtimeSeconds > 59:
+            self._overtimeSeconds = 0
+            self._overtimeMinutes = self._overtimeMinutes + 1
             
     def getRemainingTime(self):
-        m = str(self._remainingMinutes)
-        s = str(self._remainingSeconds)
+        return self.getFormattedMinSec(self._remainingMinutes, self._remainingSeconds)
+    
+    def getOvertime(self):
+        return self.getFormattedMinSec(self._overtimeMinutes, self._overtimeSeconds)
+    
+    def getFormattedMinSec(self, m, s):
+        strM = str(m)
+        strS = str(s)
         
-        if len(m) == 1:
-            m = "0" + m
+        if len(strM) == 1:
+            strM = "0" + strM
         
-        if len(s) == 1:
-            s = "0" + s
+        if len(strS) == 1:
+            strS = "0" + strS
             
-        return m + ":" + s
+        return strM + ":" + strS
     
     def toggleWorkDurationUpDown(self):
         self._workDurationUpDown += 5
@@ -68,7 +94,11 @@ class PomoTuftyModel:
             self._tickCounter = time.ticks_ms()
             self._remainingMinutes = self._breakDurationGoal
             self._remainingSeconds = 0
-    
+        elif currentScreen in ["post-work", "post-break"]:
+            self._tickCounter = time.ticks_ms()
+            self._overtimeMinutes = 0
+            self._overtimeSeconds = 0
+            
     def getCurrentScreen(self):
         return self._currentScreen
     
@@ -92,7 +122,7 @@ class PomoTuftyModel:
     def decreaseWorkDurationGoal(self):
         self._workDurationGoal -= self._workDurationUpDown
         if self._workDurationGoal < 5:
-            self._workDurationGoal = 5
+            self._workDurationGoal = 1
     
     def incrementBreakDurationGoal(self):
         self._breakDurationGoal += self._breakDurationUpDown
@@ -102,5 +132,5 @@ class PomoTuftyModel:
     def decreaseBreakDurationGoal(self):
         self._breakDurationGoal -= self._breakDurationUpDown
         if self._breakDurationGoal < 5:
-            self._breakDurationGoal = 5
+            self._breakDurationGoal = 1
             
