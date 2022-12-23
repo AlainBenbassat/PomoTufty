@@ -12,8 +12,7 @@ If you already have a main.py file on your device, back it up first!
 
 ## Remarks
 
- * I'm not used to program in Python.
- * I tried to implement the model-view-controller pattern
- * I could not figure out how the interrupts work
- * Feel free to fork and improve!
+ * I'm a programmer, but I'm not used to program in Python.
+ * I tried to implement the model-view-controller (MVC) pattern
+ * Feel free to fork, improve, submit pull requests!
 
