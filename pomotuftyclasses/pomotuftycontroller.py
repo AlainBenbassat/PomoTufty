@@ -1,112 +1,100 @@
 import time
-from pimoroni import Button
+import machine
 
-
-class PomoTuftyController:
-    buttonA = Button(7, invert=False)
-    buttonB = Button(8, invert=False)
-    buttonC = Button(9, invert=False)
-    buttonUp = Button(22, invert=False)
-    buttonDown = Button(6, invert=False)
-    
+class PomoTuftyController:    
     def setView(self, pomoView):
         self._pomoView = pomoView
     
     def setModel(self, pomoModel):
         self._pomoModel = pomoModel
+        
+    def start(self):
+        self._registerButtonHandlers()
+        self._pomoView.drawScreen()
+        self._loop()        
     
-    def buttonAPressed(self):
+    def _buttonAPressed(self, pin):
         currentScreen = self._pomoModel.getCurrentScreen()
         
         if currentScreen == "home":
             self._pomoModel.setCurrentScreen("pre-work")
         elif currentScreen == "pre-work":
             self._pomoModel.setCurrentScreen("work")
-        elif currentScreen == "work":
-            self._pomoModel.setCurrentScreen("work")
-        elif currentScreen == "post-work":
-            self._pomoModel.setCurrentScreen("pre-break")
         elif currentScreen == "pre-break":
             self._pomoModel.setCurrentScreen("break")
-        elif currentScreen == "break":
-            self._pomoModel.setCurrentScreen("break")
-        elif currentScreen == "post-break":
-            self._pomoModel.setCurrentScreen("pre-work")
-        else:
-            self._pomoView.showError("Unknown screen")
+            
+        self._pomoView.drawScreen()
 
-    def buttonBPressed(self):
+    def _buttonBPressed(self, pin):
         currentScreen = self._pomoModel.getCurrentScreen()
         
         if currentScreen == "home":
             self._pomoModel.setCurrentScreen("pre-break")
-        elif currentScreen in ["pre-work", "work", "post-work", "pre-break", "break", "post-break"]:
-            self._pomoModel.setCurrentScreen("home")
         else:
-            self._pomoView.showError("Unknown screen")
+            self._pomoModel.setCurrentScreen("home")
     
-    def buttonCPressed(self):
+        self._pomoView.drawScreen()
+        
+    def _buttonCPressed(self, pin):
         currentScreen = self._pomoModel.getCurrentScreen()
         
-        if currentScreen in ["pre-work", "work"]:
+        if currentScreen == "pre-work":
             self._pomoModel.toggleWorkDurationUpDown()
-        elif currentScreen in ["pre-break", "break"]:
+        elif currentScreen == "pre-break":
             self._pomoModel.toggleBreakDurationUpDown()
 
-    def buttonUpPressed(self):
+        self._pomoView.drawScreen()
+        
+    def _buttonUpPressed(self, pin):
         currentScreen = self._pomoModel.getCurrentScreen()
         
-        if currentScreen in ["pre-work", "work"]:
+        if currentScreen == "pre-work":
             self._pomoModel.incrementWorkDurationGoal()
-        elif currentScreen in ["pre-break", "break"]:
+        elif currentScreen == "pre-break":
             self._pomoModel.incrementBreakDurationGoal()
-            
-    def buttonDownPressed(self):
+        
+        self._pomoView.drawScreen()
+        
+    def _buttonDownPressed(self, pin):
         currentScreen = self._pomoModel.getCurrentScreen()
 
-        if currentScreen in ["pre-work", "work"]:
+        if currentScreen == "pre-work":
             self._pomoModel.decreaseWorkDurationGoal()
-        elif currentScreen in ["pre-break", "break"]:
+        elif currentScreen == "pre-break":
             self._pomoModel.decreaseBreakDurationGoal()
-            
-    def waitForInput(self):
+        
         self._pomoView.drawScreen()
-
+        
+    def _registerButtonHandlers(self):
+        buttonA = machine.Pin(7, machine.Pin.IN, machine.Pin.PULL_DOWN)
+        buttonA.irq(trigger=machine.Pin.IRQ_RISING, handler=self._buttonAPressed)
+        
+        buttonB = machine.Pin(8, machine.Pin.IN, machine.Pin.PULL_DOWN)
+        buttonB.irq(trigger=machine.Pin.IRQ_RISING, handler=self._buttonBPressed)
+        
+        buttonC = machine.Pin(9, machine.Pin.IN, machine.Pin.PULL_DOWN)
+        buttonC.irq(trigger=machine.Pin.IRQ_RISING, handler=self._buttonCPressed)
+        
+        buttonUp = machine.Pin(22, machine.Pin.IN, machine.Pin.PULL_DOWN)
+        buttonUp.irq(trigger=machine.Pin.IRQ_RISING, handler=self._buttonUpPressed)
+        
+        buttonDown = machine.Pin(6, machine.Pin.IN, machine.Pin.PULL_DOWN)
+        buttonDown.irq(trigger=machine.Pin.IRQ_RISING, handler=self._buttonDownPressed)
+        
+    def _loop(self):
         while True:
-            if self.buttonA.is_pressed:
-                self.buttonAPressed()
-                self._pomoView.drawScreen()
-                time.sleep(0.1)
+            currentScreen = self._pomoModel.getCurrentScreen()
+            
+            if currentScreen in ["work", "break"]:
+                remainingTime = self._pomoModel.tick()
                 
-            elif self.buttonB.is_pressed:
-                self.buttonBPressed()
-                self._pomoView.drawScreen()
-                time.sleep(0.1)
+                if remainingTime == "00:00":
+                    self._pomoModel.setCurrentScreen("post-" + currentScreen)
                 
-            elif self.buttonC.is_pressed:
-                self.buttonCPressed()
-                self._pomoView.drawScreen()
-                time.sleep(0.1)
-                
-            elif self.buttonUp.is_pressed:
-                self.buttonUpPressed()
-                self._pomoView.drawScreen()
-                
-            elif self.buttonDown.is_pressed:
-                self.buttonDownPressed()
                 self._pomoView.drawScreen()
 
-            if self._pomoModel.getCurrentScreen() in ["work", "break"]:
-                if self._pomoModel.getRemainingTime() == "00:00":
-                    self._pomoModel.setCurrentScreen("post-" + self._pomoModel.getCurrentScreen())
-                    self._pomoView.drawScreen()
-                else:
-                    refreshScreen = self._pomoModel.tick()
-                    if refreshScreen == True:
-                        self._pomoView.drawScreen()
-            elif self._pomoModel.getCurrentScreen() in ["post-work", "post-break"]:
-                    refreshScreen = self._pomoModel.overtimeTick()
-                    if refreshScreen == True:
-                        self._pomoView.drawScreen()
+            elif currentScreen in ["post-work", "post-break"]:
+                self._pomoModel.overtimeTick()
+                self._pomoView.drawScreen()
             
-            time.sleep(0.1)
+            time.sleep(1)

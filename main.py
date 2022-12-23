@@ -11,5 +11,5 @@ pomoController.setModel(pomoModel)
 
 pomoView.setModel(pomoModel)
 
-pomoController.waitForInput()
+pomoController.start()
 
